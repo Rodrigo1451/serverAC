@@ -4,6 +4,48 @@ Sobe servidores **Assetto Corsa** pela web. Voce manda um `.zip` e escolhe um no
 o Ubuntu Server duplica a `ACServerFiles` com esse nome, extrai o zip dentro da copia
 e inicia o `AssettoServer` ali — que fica no ar.
 
+## Antes de tudo: a `ACServerFiles` nao vem no repo
+
+O codigo esta todo aqui, mas a pasta **`ACServerFiles/`** — o AssettoServer em si —
+**ficou de fora e voce precisa adicionar**. Dois motivos: o executavel tem 112 MB, acima
+do limite de 100 MB por arquivo do GitHub, e `content/` traz carros e pistas do jogo.
+Sem essa pasta o painel sobe normalmente, mas todo envio falha ao duplicar o modelo.
+
+Baixe o **build Linux** do AssettoServer (o arquivo `AssettoServer`, sem extensao):
+
+**https://github.com/compujuckel/AssettoServer/releases/tag/v0.0.54**
+
+Na pagina, pegue **`assetto-server-linux-x64.tar.gz`** (ou
+`assetto-server-linux-arm64.tar.gz`, se o servidor for ARM). O `.zip` que aparece na
+lista e o build **win-x64** — esse nao roda no Ubuntu, veja
+[`AssettoServer.exe` nao roda no Ubuntu](#assettoserverexe-nao-roda-no-ubuntu).
+
+```bash
+mkdir -p ACServerFiles
+tar -xzf assetto-server-linux-x64.tar.gz -C ACServerFiles/
+chmod +x ACServerFiles/AssettoServer
+```
+
+Ela precisa ficar com o executavel na raiz, mais o que o seu servidor usa
+(`cfg/`, `content/`, `plugins/`, `system/`):
+
+```
+ACServerFiles/
+├── AssettoServer      <- build Linux, sem extensao, executavel
+├── cfg/
+├── content/           <- cars/ e tracks/
+├── plugins/
+└── system/
+```
+
+No Ubuntu ela vai para `/opt/serverac/ACServerFiles` — veja
+[Instalacao no Ubuntu Server](#instalacao-no-ubuntu-server). Em
+`processador/exemplo-ACServerFiles/` tem um esqueleto so pra mostrar o formato;
+nao e um servidor funcional.
+
+O `.gitignore` ja ignora `ACServerFiles/`, `ACServerFiles_montado/` e `servidores/`,
+entao a pasta que voce montar nao vai ser commitada por acidente.
+
 ## As duas pastas
 
 ```
@@ -19,6 +61,7 @@ serverAC/
 │   ├── exemplo-ACServerFiles/
 │   └── teste_pipeline.py
 │
+├── ACServerFiles/            NAO VEM NO REPO — voce monta (veja a secao acima)
 ├── deploy/                   instalar.sh, serverac.service, tailscale.sh
 ├── verificar.py              bateria completa: estatico + consistencia + fim a fim
 └── .env.example
@@ -114,6 +157,9 @@ sudo bash deploy/instalar.sh
 O script cria o usuario `serverac`, o venv, as pastas em `/opt/serverac`,
 **gera uma senha aleatoria e imprime na tela — anote** — e sobe o servico. Depois:
 
+Se ainda nao montou a `ACServerFiles`, faca isso antes — ela nao vem no repo
+([como montar](#antes-de-tudo-a-acserverfiles-nao-vem-no-repo)).
+
 ```bash
 sudo cp -r ~/ACServerFiles/. /opt/serverac/ACServerFiles/
 sudo chown -R serverac:serverac /opt/serverac/ACServerFiles
@@ -141,6 +187,8 @@ Fica assim no servidor:
 
 O `.exe` e binario Windows (PE). No Linux use o **build Linux** do AssettoServer:
 o arquivo `AssettoServer`, **sem extensao**. E o que o `ENTRY_FILE` aponta por padrao.
+Baixe em https://github.com/compujuckel/AssettoServer/releases/tag/v0.0.54
+(`assetto-server-linux-x64.tar.gz`).
 
 O app detecta isso: se so achar um `.exe`, devolve **422** com a explicacao em vez de
 um erro cru de "Exec format error". Se voce realmente precisa do `.exe`, instale o wine
