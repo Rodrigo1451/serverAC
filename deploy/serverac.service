@@ -1,0 +1,33 @@
+[Unit]
+Description=serverAC - recebe zip e sobe servidores Assetto Corsa
+After=network.target
+
+[Service]
+Type=simple
+User=serverac
+Group=serverac
+
+# WorkingDirectory e a pasta do site, para o uvicorn achar `app.py` direto.
+# (De proposito: `uvicorn site.app:app` colidiria com o modulo `site` da stdlib.
+#  O proprio app.py poe a raiz do projeto no sys.path para achar `processador`.)
+WorkingDirectory=/opt/serverac/app/site
+EnvironmentFile=/opt/serverac/app/.env
+ExecStart=/opt/serverac/app/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8000
+
+Restart=always
+RestartSec=3
+
+# IMPORTANTE: os AssettoServer sao filhos deste servico. Com o KillMode padrao
+# (control-group), reiniciar o site derrubaria TODOS os servidores junto.
+# KillMode=process mata so o uvicorn e deixa os servidores no ar.
+KillMode=process
+
+# Endurecimento basico
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/serverac
+
+[Install]
+WantedBy=multi-user.target

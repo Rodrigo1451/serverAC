@@ -1,0 +1,9 @@
+Isto e so um exemplo do formato da pasta modelo.
+
+No servidor de verdade, TEMPLATE_DIR aponta pra sua ACServerFiles - a pasta
+completa do AssettoServer, com o executavel Linux 'AssettoServer' dentro,
+mais cfg/, content/, plugins/ etc.
+
+A cada envio essa pasta e copiada inteira para RUNS_DIR/<nome que voce digitou>,
+o .zip e extraido por cima (podendo sobrescrever cfg/, content/...) e o
+AssettoServer e iniciado ali dentro.

@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>serverAC - Assetto Corsa</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f7f9; --card:#fff; --fg:#16181d; --mut:#6b7280;
+          --line:#e3e6ea; --ac:#2563eb; --ok:#16a34a; --err:#dc2626; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1115; --card:#171a21; --fg:#e6e8ec; --mut:#9aa3af; --line:#272b33;
+            --ac:#5b8cff; --ok:#4ade80; --err:#f87171; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:32px 16px; background:var(--bg); color:var(--fg);
+         font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:26px; }
+  h1 { margin:0 0 4px; font-size:20px; }
+  h2 { margin:0; font-size:15px; }
+  p.sub { margin:0 0 22px; color:var(--mut); font-size:14px; }
+  label { display:block; font-size:13px; font-weight:600; margin:14px 0 6px; }
+  .dica { font-weight:400; color:var(--mut); }
+  input[type=text], input[type=password], input[type=file] {
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+    background:var(--bg); color:var(--fg); font:inherit; }
+  input[type=file] { padding:9px; }
+  .check { display:flex; align-items:flex-start; gap:9px; margin:18px 0 0;
+           padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--bg); }
+  .check input { margin:2px 0 0; flex:none; width:16px; height:16px; accent-color:var(--ac); }
+  .check span { font-size:13.5px; }
+  .check small { display:block; color:var(--mut); font-size:12.5px; margin-top:2px; }
+  button { border:0; border-radius:8px; font:600 14px/1 inherit; cursor:pointer;
+           background:var(--ac); color:#fff; padding:11px 14px; }
+  button:disabled { opacity:.55; cursor:progress; }
+  #btn { margin-top:18px; width:100%; padding:12px; font-size:15px; }
+  .status { padding:10px 12px; border-radius:8px; font-size:14px; font-weight:600; margin-top:20px; }
+  .s-ok { background:#dcfce7; color:#14532d; } .s-err { background:#fee2e2; color:#7f1d1d; }
+  .s-avi { background:#fef3c7; color:#78350f; }
+  @media (prefers-color-scheme: dark) {
+    .s-ok { background:#0d2c19; color:#86efac; } .s-err { background:#3b1214; color:#fca5a5; }
+    .s-avi { background:#3a2c07; color:#fcd34d; }
+  }
+  pre { margin:10px 0 0; padding:12px; background:var(--bg); border:1px solid var(--line);
+        border-radius:8px; font-size:12.5px; white-space:pre-wrap; word-break:break-word;
+        max-height:300px; overflow:auto; }
+  .rot { font-size:12px; color:var(--mut); text-transform:uppercase; letter-spacing:.05em; margin-top:14px; }
+  .topo { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .linha { display:grid; grid-template-columns:10px 1fr auto; gap:4px 10px; align-items:center;
+           padding:14px 0; border-top:1px solid var(--line); }
+  .bola { width:9px; height:9px; border-radius:50%; }
+  .b-on { background:var(--ok); } .b-off { background:var(--mut); }
+  .nome { font-weight:600; word-break:break-all; }
+  .acoes { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .meta { grid-column:2 / -1; font-size:12.5px; color:var(--mut); }
+  .saida { grid-column:1 / -1; }
+  .mini { padding:7px 10px; font-size:13px; background:transparent; color:var(--ac);
+          border:1px solid var(--line); }
+  .mini.perigo { color:var(--err); }
+  .mini.armado { background:var(--err); color:#fff; border-color:var(--err); }
+  .vazio { color:var(--mut); font-size:14px; padding:14px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <h1>Novo servidor Assetto Corsa</h1>
+    <p class="sub">O <code>.zip</code> e extraido numa copia nova de <code>ACServerFiles</code> e o AssettoServer sobe sozinho.</p>
+
+    <form id="form">
+      <label for="nome">Nome do servidor <span class="dica">— vira o nome da pasta</span></label>
+      <input id="nome" type="text" placeholder="ex: interlagos-gtm" autocomplete="off" required>
+
+      <label for="arquivo">Arquivo .zip</label>
+      <input id="arquivo" type="file" accept=".zip,application/zip" required>
+
+      <label class="check" for="substituir">
+        <input id="substituir" type="checkbox" checked>
+        <span>Substituir o servidor no ar
+          <small>Para o servidor que estiver rodando antes de subir este. Todos usam as
+          mesmas portas, entao so um fica no ar por vez.</small></span>
+      </label>
+
+      <label for="token">Senha de acesso</label>
+      <input id="token" type="password" autocomplete="current-password" required>
+
+      <button id="btn" type="submit">Criar e subir servidor</button>
+    </form>
+
+    <div id="status" class="status" hidden></div>
+    <div id="detalhes"></div>
+  </div>
+
+  <div class="card">
+    <div class="topo">
+      <h2>Servidores</h2>
+      <button class="mini" id="recarregar">atualizar</button>
+    </div>
+    <div id="lista" class="vazio">carregando...</div>
+  </div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const form = $('form'), btn = $('btn'), status = $('status'), detalhes = $('detalhes'), lista = $('lista');
+
+try { $('token').value = localStorage.getItem('ac_token') || ''; } catch (e) {}
+
+const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const token = () => $('token').value;
+
+function data(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso.replace('T', ' ');
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function mostrar(tipo, texto) {   // tipo: ok | err | avi
+  status.hidden = false;
+  status.className = 'status s-' + tipo;
+  status.textContent = texto;
+}
+
+function bloco(titulo, texto) {
+  if (!texto || !String(texto).trim()) return '';
+  return `<div class="rot">${titulo}</div><pre>${esc(texto)}</pre>`;
+}
+
+function corpoForm(extra) {
+  const fd = new FormData();
+  fd.append('token', token());
+  for (const [k, v] of Object.entries(extra || {})) fd.append(k, v);
+  return fd;
+}
+
+// ---------------------------------------------------------------- lista
+
+async function carregarLista() {
+  if (!token()) { lista.className = 'vazio'; lista.textContent = 'digite a senha para ver os servidores'; return; }
+  try {
+    const r = await fetch('/instancias?token=' + encodeURIComponent(token()));
+    if (!r.ok) {
+      lista.className = 'vazio';
+      lista.textContent = r.status === 401 ? 'senha incorreta' : 'erro ' + r.status;
+      return;
+    }
+    const { instancias } = await r.json();
+    if (!instancias.length) { lista.className = 'vazio'; lista.textContent = 'nenhum servidor criado ainda'; return; }
+    lista.className = '';
+    lista.innerHTML = instancias.map(i => `
+      <div class="linha" data-nome="${esc(i.nome)}">
+        <span class="bola ${i.rodando ? 'b-on' : 'b-off'}"></span>
+        <span class="nome">${esc(i.nome)}</span>
+        <span class="acoes">
+          ${i.rodando
+            ? '<button class="mini perigo" data-acao="parar">parar</button>'
+            : '<button class="mini" data-acao="iniciar">iniciar</button>'}
+          <button class="mini" data-acao="log">log</button>
+        </span>
+        <span class="meta">
+          enviado em ${data(i.enviado_em)}
+          &middot; ${i.rodando ? 'no ar, pid ' + i.pid : 'parado'}
+          ${i.zip ? '&middot; ' + esc(i.zip) : ''}
+        </span>
+        <span class="saida"></span>
+      </div>`).join('');
+  } catch (e) {
+    lista.className = 'vazio';
+    lista.textContent = 'falha de rede: ' + e.message;
+  }
+}
+
+function armar(b, texto, ms = 5000) {
+  b.dataset.armado = '1';
+  b.dataset.original = b.dataset.original || b.textContent;
+  b.textContent = texto;
+  b.classList.add('armado');
+  setTimeout(() => {
+    if (b.dataset.armado === '1') {
+      b.dataset.armado = '';
+      b.textContent = b.dataset.original;
+      b.classList.remove('armado');
+    }
+  }, ms);
+}
+
+lista.addEventListener('click', async (ev) => {
+  const b = ev.target.closest('button[data-acao]');
+  if (!b) return;
+  const linha = b.closest('.linha');
+  const nome = linha.dataset.nome;
+  const saida = linha.querySelector('.saida');
+  const acao = b.dataset.acao;
+
+  if (acao === 'log') {
+    if (saida.innerHTML) { saida.innerHTML = ''; return; }
+    saida.innerHTML = '<pre>carregando...</pre>';
+    const r = await fetch(`/instancias/${encodeURIComponent(nome)}/log?token=${encodeURIComponent(token())}`);
+    const d = await r.json();
+    saida.innerHTML = r.ok ? (bloco('log', d.log) || '<pre>(log vazio)</pre>')
+                           : `<pre>erro ${r.status}: ${esc(d.detail || '')}</pre>`;
+    return;
+  }
+
+  if (acao === 'iniciar') {
+    const substituir = b.dataset.armado === '1';
+    b.disabled = true;
+    b.textContent = 'iniciando...';
+    const r = await fetch(`/instancias/${encodeURIComponent(nome)}/iniciar`,
+                          { method: 'POST', body: corpoForm({ substituir: substituir ? '1' : '' }) });
+    const d = await r.json();
+    b.disabled = false;
+
+    if (r.status === 409 && !substituir) {
+      // outro servidor esta no ar: pede confirmacao no proprio botao
+      b.dataset.armado = '';
+      b.textContent = b.dataset.original || 'iniciar';
+      armar(b, 'substituir o que esta no ar?');
+      mostrar('avi', d.detail || 'Ja tem um servidor no ar.');
+      return;
+    }
+    b.classList.remove('armado');
+    if (!r.ok) mostrar('err', `Erro ${r.status}: ${d.detail || ''}`);
+    else if (d.subiu) mostrar('ok', `"${nome}" no ar (pid ${d.pid})` +
+                                    (d.substituiu?.length ? ` — substituiu ${d.substituiu.join(', ')}` : ''));
+    else mostrar('err', `"${nome}" nao subiu (exit ${d.exit_code}) — veja o log`);
+    detalhes.innerHTML = '';
+    carregarLista();
+    return;
+  }
+
+  if (acao === 'parar') {
+    if (b.dataset.armado !== '1') { armar(b, 'confirmar?', 4000); return; }
+    b.disabled = true;
+    b.textContent = 'parando...';
+    const r = await fetch(`/instancias/${encodeURIComponent(nome)}/parar`,
+                          { method: 'POST', body: corpoForm() });
+    const d = await r.json();
+    mostrar(r.ok && d.parado ? 'ok' : 'err',
+            r.ok ? (d.parado ? `"${nome}" parado.` : `"${nome}": ${d.motivo || 'nao parou'}`)
+                 : `Erro ${r.status}: ${d.detail || ''}`);
+    detalhes.innerHTML = '';
+    carregarLista();
+  }
+});
+
+$('recarregar').addEventListener('click', carregarLista);
+
+// ---------------------------------------------------------------- upload
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const arquivo = $('arquivo').files[0];
+  if (!arquivo) return;
+  try { localStorage.setItem('ac_token', token()); } catch (err) {}
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando e subindo...';
+  mostrar('ok', 'Processando...');
+  status.className = 'status';
+  detalhes.innerHTML = '';
+
+  const fd = corpoForm({ nome: $('nome').value, substituir: $('substituir').checked ? '1' : '' });
+  fd.append('arquivo', arquivo);
+
+  try {
+    const r = await fetch('/upload', { method: 'POST', body: fd });
+    const d = await r.json();
+
+    if (!r.ok) {
+      mostrar('err', 'Erro ' + r.status + ': ' + (d.detail || 'falhou'));
+    } else {
+      const ex = d.execucao;
+      const bg = ex.modo === 'background';
+      const ok = bg ? ex.subiu : ex.exit_code === 0;
+      if (bg && !ok && ex.motivo) mostrar('avi', ex.motivo);
+      else mostrar(ok ? 'ok' : 'err', bg
+        ? (ok ? `Servidor "${d.nome}" no ar (pid ${ex.pid})` +
+                (ex.substituiu?.length ? ` — substituiu ${ex.substituiu.join(', ')}` : '')
+              : `"${d.nome}" foi criado mas caiu na largada (exit ${ex.exit_code}) — veja o log`)
+        : (ok ? 'Concluido (exit 0)' : 'Terminou com erro (exit ' + ex.exit_code + ')'));
+
+      detalhes.innerHTML =
+        bloco('Detalhes',
+          `pasta: ${d.pasta}\nzip: ${d.zip} (${(d.tamanho_bytes/1048576).toFixed(2)} MB)` +
+          `\narquivos extraidos: ${d.arquivos_extraidos}` +
+          (ex.executavel ? `\nexecutavel: ${ex.executavel}` : '') +
+          (bg ? (ex.pid ? `\npid: ${ex.pid}` : '') : `\nduracao: ${ex.duracao_s}s`)) +
+        bloco(bg ? 'primeiras linhas do log' : 'stdout', bg ? ex.log_previa : ex.stdout) +
+        (bg ? '' : bloco('stderr', ex.stderr));
+      if (ok) { $('nome').value = ''; $('arquivo').value = ''; }
+    }
+  } catch (err) {
+    mostrar('err', 'Falha de rede: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Criar e subir servidor';
+    carregarLista();
+  }
+});
+
+$('token').addEventListener('change', carregarLista);
+carregarLista();
+</script>
+</body>
+</html>

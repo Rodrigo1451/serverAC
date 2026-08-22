@@ -1,0 +1,11 @@
+.env
+runs/
+__pycache__/
+.venv/
+
+# Binarios e conteudo do AssettoServer (nao vao pro repo):
+# o executavel tem 112 MB, acima do limite do GitHub, e content/
+# traz carros e pistas do jogo. Veja o README para montar localmente.
+ACServerFiles/
+ACServerFiles_montado/
+servidores/
