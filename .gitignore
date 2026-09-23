@@ -9,3 +9,9 @@ __pycache__/
 ACServerFiles/
 ACServerFiles_montado/
 servidores/
+
+# Segredos: o D:\emergency-push.cmd faz git add . sem revisao
+.env.*
+!.env.example
+*.pem
+*.key
