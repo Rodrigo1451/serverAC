@@ -1,0 +1,3 @@
+
+# Hook roda no sh do Git for Windows: CRLF quebraria o script.
+.githooks/* text eol=lf

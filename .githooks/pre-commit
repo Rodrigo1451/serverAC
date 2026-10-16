@@ -1,0 +1,11 @@
+#!/bin/sh
+# Recusa commit com segredo (ver .githooks/secret-scan.mjs, cópia de
+# siteHive/scripts/secret-scan.mjs, onde moram os testes). Vale também pro
+# D:\emergency-push.cmd, que faz `git add .` sem olhar o diff. Ligado por
+# clone com `git config core.hooksPath .githooks`. Sem node na máquina o hook
+# só avisa: travar o commit de emergência por falta de ferramenta seria pior.
+if ! command -v node >/dev/null 2>&1; then
+  echo "[secret-scan] node não encontrado: varredura de segredo PULADA" >&2
+  exit 0
+fi
+exec node "$(git rev-parse --show-toplevel)/.githooks/secret-scan.mjs" --staged
